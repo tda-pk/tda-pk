@@ -2,6 +2,7 @@ from itertools import combinations
 
 import networkx as nx
 
+from tda.matrix import Matrix
 from tda.metrics import euclidean_metric
 from tda.point import Point
 from tda.utils import are_unique
@@ -287,7 +288,7 @@ class VietorisRipsComplex(object):
 
         Output:
         -------
-        boundary_matrix : list
+        boundary_matrix : matrix
             Matrix of a n-th boundary operator.
         matrix_rows: dict
             Dictionary of rows of the matrix.
@@ -309,12 +310,12 @@ class VietorisRipsComplex(object):
         boundary_dict = self.check_nesting(
             higher_simplices, lower_simplices)
 
-        boundary_matrix = []
+        boundary_entries = []
         matrix_rows = {}
         reversed_matrix_rows = {}
         row_index = 0
         for lower_simplex in lower_simplices:
-            boundary_matrix.append([])
+            boundary_entries.append([])
             matrix_rows[row_index] = lower_simplex
             reversed_matrix_rows[lower_simplex] = row_index
             row_index += 1
@@ -322,16 +323,18 @@ class VietorisRipsComplex(object):
         matrix_cols = {}
         col_index = 0
         for higher_simplex in higher_simplices:
-            for row in boundary_matrix:
+            for row in boundary_entries:
                 row.append(0)
 
             list_of_faces = boundary_dict[higher_simplex]
             for face in list_of_faces:
                 row_index = reversed_matrix_rows[face]
-                boundary_matrix[row_index][col_index] = 1
+                boundary_entries[row_index][col_index] = 1
 
             matrix_cols[col_index] = higher_simplex
             col_index += 1
+
+        boundary_matrix = Matrix(boundary_entries)
 
         return boundary_matrix, matrix_rows, matrix_cols
 
